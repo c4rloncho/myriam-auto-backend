@@ -11,7 +11,9 @@ export class DocumentCategoryService {
     @InjectRepository(DocumentCategory)
     private readonly documentCategoryRepository: Repository<DocumentCategory>,
   ) { }
-  create(createDocumentCategoryDto: CreateDocumentCategoryDto) {
+  async create(input: CreateDocumentCategoryDto) {
+    const { name, entityType, description, isActive, isDeleted } = input;
+    const documentCategoryExist = await this.documentCategoryRepository.findOne({ where: { entityType } })
     return 'This action adds a new documentCategory';
   }
 
