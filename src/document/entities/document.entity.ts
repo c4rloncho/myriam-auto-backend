@@ -22,11 +22,11 @@ export class Document {
     @Column({ type: 'varchar', length: 255, nullable: false })
     filename: string;
 
-    @Column({ type: 'date', nullable: true, name: 'emission_date' })
-    emissionDate: Date;
+    @Column({ type: 'timestamp', default: null, nullable: true, name: 'emission_date' })
+    emissionDate: Date | null;
 
-    @Column({ type: 'date', nullable: true, name: 'expiration_date' })
-    expirationDate: Date;
+    @Column({ type: 'timestamp', default: null, nullable: true, name: 'expiration_date' })
+    expirationDate: Date | null;
 
     @Column({ type: 'bigint', nullable: true, name: 'file_size' })
     fileSize: number;
