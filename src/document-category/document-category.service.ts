@@ -1,34 +1,71 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDocumentCategoryDto } from './dto/create-document-category.dto';
 import { UpdateDocumentCategoryDto } from './dto/update-document-category.dto';
-import { DocumentCategory, EntityType } from './entities/document-category.entity';
+import {
+  DocumentCategory,
+  EntityType,
+} from './entities/document-category.entity';
 
 @Injectable()
 export class DocumentCategoryService {
   constructor(
     @InjectRepository(DocumentCategory)
     private readonly documentCategoryRepository: Repository<DocumentCategory>,
-  ) { }
+  ) {}
   async create(input: CreateDocumentCategoryDto) {
-    const { name, entityType, description, isActive, isDeleted } = input;
-    const documentCategoryExist = await this.documentCategoryRepository.findOne({ where: { entityType } })
-    return 'This action adds a new documentCategory';
+    const {
+      name,
+      entityType,
+      description,
+      isActive = true,
+      isDeleted = false,
+    } = input;
+
+    const existingCategory = await this.documentCategoryRepository.findOne({
+      where: { name, entityType, isDeleted: false },
+    });
+
+    if (existingCategory) {
+      throw new ConflictException(
+        `Document category '${name}' already exists for ${entityType}`,
+      );
+    }
+
+    const documentCategory = this.documentCategoryRepository.create({
+      name,
+      entityType,
+      description,
+      isActive,
+      isDeleted,
+    });
+
+    return this.documentCategoryRepository.save(documentCategory);
   }
 
   findAll() {
     return `This action returns all documentCategory`;
   }
 
-  findOne(id: number) {
-    const documentCategory = this.documentCategoryRepository.findOne({
+  async findOne(id: number) {
+    const documentCategory = await this.documentCategoryRepository.findOne({
       where: { id, isActive: true, isDeleted: false },
     });
     if (!documentCategory) {
       throw new Error(`Document Category with id ${id} not found`);
     }
     return documentCategory;
+  }
+  async findByName(name: string, entityType: string) {
+    return this.documentCategoryRepository.findOne({
+      where: {
+        name,
+        entityType: entityType as EntityType,
+        isActive: true,
+        isDeleted: false,
+      },
+    });
   }
 
   update(id: number, updateDocumentCategoryDto: UpdateDocumentCategoryDto) {
@@ -43,8 +80,8 @@ export class DocumentCategoryService {
       where: {
         entityType,
         isActive: true,
-        isDeleted: false
-      }
+        isDeleted: false,
+      },
     });
   }
 }
